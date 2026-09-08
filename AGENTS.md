@@ -1,7 +1,5 @@
 # 开发约定
 
-与 [pi-review-agent](https://github.com/sun-praise/pi-review-agent) 的 AGENTS.md 保持同一套纪律，按本项目（Go 后端 + Vite/TS 前端）语境落地。
-
 ## 分支与 worktree
 
 **IMPORTANT**: 不要在 `main` 分支上直接开发。所有改动（功能、修复、文档、CI）都在 `.worktrees/<branch>/` 下做，基于 `origin/main` 建分支，改完开 PR 合并。
