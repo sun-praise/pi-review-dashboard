@@ -1,0 +1,53 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build frontend
+        working-directory: web
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+
+      - name: Build release binaries
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          CGO_ENABLED=0 GOOS=linux   GOARCH=amd64 go build -trimpath -o out/pi-review-dashboard-linux-amd64 .
+          CGO_ENABLED=0 GOOS=linux   GOARCH=arm64 go build -trimpath -o out/pi-review-dashboard-linux-arm64 .
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -o out/pi-review-dashboard-windows-amd64.exe .
+
+      # --notes-file, never inline --notes: shell escaping mangles the body.
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          notes=$(mktemp)
+          {
+            echo "pi-review-dashboard ${TAG}"
+            echo
+            echo "单二进制（内嵌前端 + SQLite，纯 Go 无 CGO）。下载对应平台产物，按 README 部署即可。"
+          } > "$notes"
+          gh release create "$TAG" --title "$TAG" --notes-file "$notes" out/*

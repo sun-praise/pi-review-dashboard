@@ -1,0 +1,48 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # Frontend first: `go test ./...` compiles the main package, whose
+      # go:embed needs web/dist to exist.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build frontend (tsc typecheck + vite build)
+        working-directory: web
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+
+      - name: gofmt
+        run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: go test
+        run: go test ./...
+
+      - name: Build binary (embeds web/dist)
+        run: CGO_ENABLED=0 go build -trimpath -o pi-review-dashboard .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pi-review-dashboard-linux-amd64
+          path: pi-review-dashboard
+          if-no-files-found: error

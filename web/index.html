@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pi-review 统计看板</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div class="brand">
+          <h1>pi-review 统计看板</h1>
+          <span class="sub" id="dbMeta"></span>
+        </div>
+        <div class="controls">
+          <div class="chips" id="dayChips">
+            <button class="chip" data-days="7">近 7 天</button>
+            <button class="chip" data-days="30">近 30 天</button>
+            <button class="chip" data-days="90">近 90 天</button>
+            <button class="chip" data-days="0">全部</button>
+          </div>
+          <select id="repoSelect" title="按仓库筛选"></select>
+        </div>
+      </header>
+
+      <section class="cards" id="cards"></section>
+
+      <section class="grid-2">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>仓库对比</h2>
+            <div class="seg" id="repoMetric">
+              <button class="chip active" data-metric="cost">成本</button>
+              <button class="chip" data-metric="input">Input</button>
+              <button class="chip" data-metric="output">Output</button>
+              <button class="chip" data-metric="cacheRead">Cache Read</button>
+              <button class="chip" data-metric="tokens">Token 合计</button>
+            </div>
+          </div>
+          <div class="chart-wrap"><canvas id="repoChart"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h2>Verdict 分布</h2></div>
+          <div class="chart-wrap"><canvas id="verdictChart"></canvas></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>趋势（按仓库堆叠）</h2>
+          <div class="seg" id="trendMetric">
+            <button class="chip active" data-metric="cost">成本</button>
+            <button class="chip" data-metric="tokens">Token 合计</button>
+          </div>
+        </div>
+        <div class="chart-wrap trend"><canvas id="trendChart"></canvas></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><h2>最近 100 次评审</h2></div>
+        <div class="table-wrap">
+          <table id="recentTable">
+            <thead>
+              <tr>
+                <th>时间</th><th>仓库</th><th>PR</th><th>模式</th><th>Verdict</th>
+                <th>阻塞 / 警告</th><th>Input</th><th>Output</th><th>Cache Read</th>
+                <th>成本</th><th>耗时</th><th>角色数</th>
+              </tr>
+            </thead>
+            <tbody id="recentBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
