@@ -1,6 +1,6 @@
 import Chart from "chart.js/auto";
 import { fetchDashboard, type Dashboard, type WindowState } from "./api";
-import { fmtCost, fmtDuration, fmtPct, fmtTokens, fmtTs } from "./format";
+import { fmtCost, fmtDuration, fmtPct, fmtTokens, fmtTs, esc } from "./format";
 import {
   createRepoBar, createTrendLine, createVerdictDoughnut,
   REPO_PALETTE, VERDICT_COLORS,
@@ -42,7 +42,7 @@ function renderRepoSelect(d: Dashboard): void {
   const repos = (d.repos ?? []).map((r) => r.repository);
   sel.innerHTML =
     `<option value="">全部仓库（${repos.length}）</option>` +
-    repos.map((r) => `<option value="${r}"${r === state.repo ? " selected" : ""}>${r}</option>`).join("");
+    repos.map((r) => `<option value="${esc(r)}"${r === state.repo ? " selected" : ""}>${esc(r)}</option>`).join("");
 }
 
 function renderCharts(d: Dashboard): void {
@@ -65,10 +65,10 @@ function renderRecent(d: Dashboard): void {
     const sev = `${r.blocking} / ${r.warning}`;
     return `<tr>` +
       `<td class="mono">${fmtTs(r.ts)}</td>` +
-      `<td class="mono" title="${r.repository}">${r.repository.split("/").pop()}</td>` +
-      `<td class="mono"><a href="${prUrl(r)}" target="_blank" rel="noreferrer">#${r.pr}</a></td>` +
+      `<td class="mono" title="${esc(r.repository)}">${esc(r.repository.split("/").pop() ?? "")}</td>` +
+      `<td class="mono"><a href="${esc(prUrl(r))}" target="_blank" rel="noreferrer">#${r.pr}</a></td>` +
       `<td>${r.mode === "team" ? "团队" : "单评审"}</td>` +
-      `<td><span class="verdict" style="color:${vColor}">${verdict}</span></td>` +
+      `<td><span class="verdict" style="color:${vColor}">${esc(verdict)}</span></td>` +
       `<td class="mono">${sev}</td>` +
       `<td class="mono num">${fmtTokens(r.input)}</td>` +
       `<td class="mono num">${fmtTokens(r.output)}</td>` +
