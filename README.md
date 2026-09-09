@@ -85,6 +85,7 @@ PI_REVIEW_STATS_URL=http://<内网地址>:8787/api/events npx tsx src/index.ts -
 - **幂等**：`(platform, repository, runId, attempt)` 唯一——CI 重跑 / HTTP 重试只记一次；
 - **字段只增不改**（`schema` 版本化），第三方可以放心解析；
 - 缓存命中率 = `cacheRead / (input + cacheRead)`，衡量 session resume 实际省下的钱。
+- 事件字段（repository、verdict 等）是不可信输入：前端渲染统一走 `esc()` 输出转义（`web/src/format.ts`）。ingest 未设 `STATS_TOKEN` 时这是唯一防线——新增任何 innerHTML 插值点必须经过它。
 
 ## Docker
 

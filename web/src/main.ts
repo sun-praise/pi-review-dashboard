@@ -1,6 +1,6 @@
 import Chart from "chart.js/auto";
 import { fetchDashboard, type Dashboard, type WindowState } from "./api";
-import { fmtCost, fmtDuration, fmtPct, fmtTokens, fmtTs } from "./format";
+import { fmtCost, fmtDuration, fmtPct, fmtTokens, fmtTs, esc } from "./format";
 import {
   createRepoBar, createTrendLine, createVerdictDoughnut,
   REPO_PALETTE, VERDICT_COLORS,
@@ -42,7 +42,7 @@ function renderRepoSelect(d: Dashboard): void {
   const repos = (d.repos ?? []).map((r) => r.repository);
   sel.innerHTML =
     `<option value="">全部仓库（${repos.length}）</option>` +
-    repos.map((r) => `<option value="${r}"${r === state.repo ? " selected" : ""}>${r}</option>`).join("");
+    repos.map((r) => `<option value="${esc(r)}"${r === state.repo ? " selected" : ""}>${esc(r)}</option>`).join("");
 }
 
 function renderCharts(d: Dashboard): void {
@@ -60,15 +60,17 @@ function renderCharts(d: Dashboard): void {
 function renderRecent(d: Dashboard): void {
   const rows = d.recent ?? [];
   $("recentBody").innerHTML = rows.map((r) => {
+    // 安全依赖：颜色值只能来自硬编码 VERDICT_COLORS（含 fallback 十六进制），
+    // 事件数据绝不进入 style 属性 —— 引入动态配色时必须重新评估。
     const vColor = VERDICT_COLORS[r.verdict] ?? "#94a3b8";
     const verdict = r.verdict === "" ? "—" : r.verdict;
     const sev = `${r.blocking} / ${r.warning}`;
     return `<tr>` +
       `<td class="mono">${fmtTs(r.ts)}</td>` +
-      `<td class="mono" title="${r.repository}">${r.repository.split("/").pop()}</td>` +
-      `<td class="mono"><a href="${prUrl(r)}" target="_blank" rel="noreferrer">#${r.pr}</a></td>` +
+      `<td class="mono" title="${esc(r.repository)}">${esc(r.repository.split("/").pop() ?? "")}</td>` +
+      `<td class="mono"><a href="${esc(prUrl(r))}" target="_blank" rel="noreferrer">#${r.pr}</a></td>` +
       `<td>${r.mode === "team" ? "团队" : "单评审"}</td>` +
-      `<td><span class="verdict" style="color:${vColor}">${verdict}</span></td>` +
+      `<td><span class="verdict" style="color:${vColor}">${esc(verdict)}</span></td>` +
       `<td class="mono">${sev}</td>` +
       `<td class="mono num">${fmtTokens(r.input)}</td>` +
       `<td class="mono num">${fmtTokens(r.output)}</td>` +
@@ -100,7 +102,9 @@ async function load(): Promise<void> {
     data = await fetchDashboard(state);
   } catch (err) {
     $("recentBody").innerHTML =
-      `<tr><td colspan="12" class="empty error">加载失败：${String(err)}</td></tr>`;
+      // err 文本可能携带服务端响应体（fetchDashboard 的 res.text()）——
+      // 它是网络另一端可控的内容，进 innerHTML 前必须转义。
+      `<tr><td colspan="12" class="empty error">加载失败：${esc(String(err))}</td></tr>`;
     return;
   }
   renderCards(data);

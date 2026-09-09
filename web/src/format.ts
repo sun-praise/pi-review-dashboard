@@ -29,3 +29,18 @@ export function fmtDuration(s: number | null): string {
 export function fmtTs(iso: string): string {
   return iso.slice(5, 16).replace("T", " ");
 }
+
+/** HTML-escape untrusted event fields (repository, verdict, platform, …)
+ *  before they land in innerHTML / attribute contexts. The ingest endpoint
+ *  accepts arbitrary strings — with an unauthenticated intranet dashboard
+ *  this is the ONLY thing standing between a crafted repository name and
+ *  script execution, so every innerHTML interpolation of event data MUST
+ *  go through it. */
+export function esc(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
