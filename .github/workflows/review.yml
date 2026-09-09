@@ -1,0 +1,31 @@
+name: review
+
+# Dogfood: every PR to main is reviewed by pi-review-agent itself (the
+# upstream this dashboard aggregates stats for). Mirrors the agent repo's
+# own dogfood-review workflow. Requires repo secrets LITELLM_URL /
+# LITELLM_API_KEY — without them this job fails; add them under
+# Settings → Secrets and variables → Actions.
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write   # needed to post the review comment
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      # web/dist is a committed build artifact (go:embed needs it in-repo);
+      # generated output has no review value and only inflates the payload.
+      - name: Run pi-review-agent on this PR
+        uses: sun-praise/pi-review-agent@v1
+        with:
+          team: "quality:1,security:1,performance:1"
+          diff-exclude: "web/dist/**"
+          litellm-url: ${{ secrets.LITELLM_URL }}
+          litellm-api-key: ${{ secrets.LITELLM_API_KEY }}
