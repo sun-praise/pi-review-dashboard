@@ -12,6 +12,8 @@ repo B (CI)               ─┼─ POST /api/events ─→ Go + SQLite ─→ W
 本地 CLI 运行             ─┘    (幂等去重)                        (跨仓库对比/趋势/明细)
 ```
 
+![dashboard 预览（演示数据，`-seed 80` 生成）](docs/screenshot.png)
+
 ## 快速开始
 
 ```bash
