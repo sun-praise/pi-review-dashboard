@@ -60,6 +60,8 @@ function renderCharts(d: Dashboard): void {
 function renderRecent(d: Dashboard): void {
   const rows = d.recent ?? [];
   $("recentBody").innerHTML = rows.map((r) => {
+    // 安全依赖：颜色值只能来自硬编码 VERDICT_COLORS（含 fallback 十六进制），
+    // 事件数据绝不进入 style 属性 —— 引入动态配色时必须重新评估。
     const vColor = VERDICT_COLORS[r.verdict] ?? "#94a3b8";
     const verdict = r.verdict === "" ? "—" : r.verdict;
     const sev = `${r.blocking} / ${r.warning}`;
@@ -100,7 +102,9 @@ async function load(): Promise<void> {
     data = await fetchDashboard(state);
   } catch (err) {
     $("recentBody").innerHTML =
-      `<tr><td colspan="12" class="empty error">加载失败：${String(err)}</td></tr>`;
+      // err 文本可能携带服务端响应体（fetchDashboard 的 res.text()）——
+      // 它是网络另一端可控的内容，进 innerHTML 前必须转义。
+      `<tr><td colspan="12" class="empty error">加载失败：${esc(String(err))}</td></tr>`;
     return;
   }
   renderCards(data);
