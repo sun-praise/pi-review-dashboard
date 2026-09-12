@@ -27,5 +27,11 @@ jobs:
         with:
           team: "quality:1,security:1,performance:1"
           diff-exclude: "web/dist/**"
+          # LITELLM_API_KEY is scoped to mimo-* only: deepseek-v4-flash 403s
+          # until ops widens the allowlist (Svtter/ops#110). mimo-v2.5 is
+          # 500ing proxy-side, so try pro first; keep v2.5 as last resort.
+          # Primary stays deepseek-v4-flash (the action default) so it takes
+          # over automatically once the key allows it.
+          fallback-models: "mimo-v2.5-pro,mimo-v2.5"
           litellm-url: ${{ secrets.LITELLM_URL }}
           litellm-api-key: ${{ secrets.LITELLM_API_KEY }}
