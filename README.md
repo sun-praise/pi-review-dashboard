@@ -1,6 +1,6 @@
 # pi-review-dashboard
 
-[English](README.md) | [中文](cn.md)
+[English](README.md) | [中文](README.cn.md)
 
 Cross-repository statistics dashboard for [pi-review-agent](https://github.com/sun-praise/pi-review-agent):
 review counts, token usage (input / output / cacheRead / cacheWrite), cost, verdict distribution,
