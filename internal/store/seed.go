@@ -6,6 +6,12 @@ import (
 	"time"
 )
 
+// deepseekCost mirrors pi-review-agent DEFAULT_DEEPSEEK_COST (USD / 1M tokens):
+// input 0.14, output 0.28, cacheRead 0.0028, cacheWrite 0.
+func deepseekCost(input, output, cacheRead int64) float64 {
+	return float64(input)*0.14/1e6 + float64(output)*0.28/1e6 + float64(cacheRead)*0.0028/1e6
+}
+
 // SeedDemo fills the database with plausible fake events so a fresh
 // dashboard deployment has something to look at. Values mimic the real
 // agent's shape: a team review = 2-4 reviewer personas + coordinator,
@@ -43,9 +49,10 @@ func SeedDemo(s *Store, n int) error {
 			input := int64(30_000 + rand.IntN(120_000))
 			cacheRead := input * int64(55+rand.IntN(30)) / 100
 			input -= cacheRead
-			cost := float64(input)*0.14/1e6 + float64(cacheRead)*0.0028/1e6
+			output := int64(800 + rand.IntN(3200))
+			cost := deepseekCost(input, output, cacheRead)
 			event.Personas = append(event.Personas, PersonaUsage{
-				Name: name, Input: input, Output: int64(800 + rand.IntN(3200)),
+				Name: name, Input: input, Output: output,
 				CacheRead: cacheRead, Cost: cost, Resumed: rand.IntN(2) == 1,
 			})
 			event.Usage.Input += input
@@ -56,9 +63,10 @@ func SeedDemo(s *Store, n int) error {
 		coordIn := int64(20_000 + rand.IntN(60_000))
 		coordCache := coordIn * 70 / 100
 		coordIn -= coordCache
-		coordCost := float64(coordIn)*0.14/1e6 + float64(coordCache)*0.0028/1e6
+		coordOut := int64(1000 + rand.IntN(2500))
+		coordCost := deepseekCost(coordIn, coordOut, coordCache)
 		event.Personas = append(event.Personas, PersonaUsage{
-			Name: "coordinator", Input: coordIn, Output: int64(1000 + rand.IntN(2500)),
+			Name: "coordinator", Input: coordIn, Output: coordOut,
 			CacheRead: coordCache, Cost: coordCost,
 		})
 		event.Usage.Input += coordIn
